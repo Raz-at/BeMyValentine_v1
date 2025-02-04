@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hooray! Happi Happi</title>
+    <style>
+      /* General Reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+        text-align: center;
+        overflow: hidden;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+      }
+
+      h1 {
+        font-size: 3rem;
+        color: #e74c3c;
+        margin-bottom: 20px;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      p {
+        font-size: 1.5rem;
+        color: #666;
+        margin-bottom: 10px;
+      }
+
+      /* Floating Animation */
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      /* Confetti Canvas */
+      #confetti-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+    </style>
+    <!-- Confetti JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Hooray! Happi Happi 🎉</h1>
+      <p>Your request has been sent to your valentine.</p>
+      <p>He will be very, very happy.</p>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+      // Confetti effect
+      const confettiCanvas = document.getElementById("confetti-canvas");
+      const confettiSettings = { target: confettiCanvas, resize: true };
+
+      // Continuous confetti effect
+      setInterval(() => {
+        confetti({
+          particleCount: 100,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+        });
+        confetti({
+          particleCount: 100,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+        });
+      }, 1000);
+    </script>
+  </body>
+</html>
+
+

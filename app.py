@@ -1,6 +1,10 @@
-from flask import Flask, redirect, url_for, session, request, render_template
+from flask import Flask, redirect, url_for, session, request, render_template, jsonify
 from authlib.integrations.flask_client import OAuth
 from config import Config
+import requests
+import base64
+import json
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -13,16 +17,15 @@ google = oauth.register(
     client_secret=app.config['GOOGLE_CLIENT_SECRET'],
     authorize_url='https://accounts.google.com/o/oauth2/auth',
     access_token_url='https://oauth2.googleapis.com/token',
-    access_token_params=None,
-    authorize_params=None,
     api_base_url='https://www.googleapis.com/oauth2/v1/',
     userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
-    jwks_uri = "https://www.googleapis.com/oauth2/v3/certs",
-    client_kwargs={'scope': 'openid email profile'},
-    server_metadata_url= 'https://accounts.google.com/.well-known/openid-configuration'
-
+    jwks_uri="https://www.googleapis.com/oauth2/v3/certs",
+    client_kwargs={'scope': 'openid email profile https://www.googleapis.com/auth/gmail.send'},
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
 )
 
+user_email = None  # Store user email globally
+access_token = None  # Store access token globally
 
 @app.route('/')
 def index():
@@ -32,12 +35,61 @@ def index():
 def login():
     return google.authorize_redirect(url_for('authorize', _external=True))
 
+@app.route('/celebrate')
+def celebrate():
+    return render_template('celebrate.html')
+
 @app.route('/authorize')
 def authorize():
+    global user_email, access_token, user_name  # Store the values globally
+
     token = google.authorize_access_token()
     user_info = google.get('userinfo').json()
-    email = user_info['email']
-    return f'<h1>Hello, {email}</h1>'
+    user_email = user_info['email']
+    user_name = user_info['name']
+    access_token = token['access_token']
+
+    return render_template('letter.html', email=user_email, user_name = user_name)
+
+@app.route('/send_email', methods=['POST'])
+def send_email_route():
+    global user_email, access_token
+
+    if not user_email or not access_token:
+        return jsonify({"message": "Error: User not authenticated"}), 400
+
+    success = send_email(access_token, user_email)
+
+    if success:
+        return jsonify({"message": "Email sent successfully!"})
+    else:
+        return jsonify({"message": "Failed to send email"}), 500
+
+def send_email(access_token, sender_email):
+    to_email = app.config['TO_EMAIL']
+    subject = "you have a notification from {sender_email}"
+    body = f"Hello,\n\n{user_name} has accepted to become your valentine"
+
+    message = MIMEText(body)
+    message["to"] = to_email
+    message["subject"] = subject
+    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
+
+    url = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+
+    payload = json.dumps({"raw": raw_message})
+
+    response = requests.post(url, headers=headers, data=payload)
+
+    if response.status_code == 200:
+        return True
+    else:
+        print("Failed to send email:", response.json())
+        return False
 
 if __name__ == '__main__':
     app.run(debug=True)
