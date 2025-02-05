@@ -1,3 +1,4 @@
+import os
 from flask import Flask, redirect, url_for, session, request, render_template, jsonify
 from authlib.integrations.flask_client import OAuth
 from config import Config
@@ -7,6 +8,11 @@ import json
 from email.mime.text import MIMEText
 
 
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+TO_EMAIL = os.getenv("TO_EMAIL")
+
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -14,8 +20,8 @@ oauth = OAuth(app)
 
 google = oauth.register(
     name='google',
-    client_id=app.config['GOOGLE_CLIENT_ID'],
-    client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
     authorize_url='https://accounts.google.com/o/oauth2/auth',
     access_token_url='https://oauth2.googleapis.com/token',
     api_base_url='https://www.googleapis.com/oauth2/v1/',
@@ -25,8 +31,22 @@ google = oauth.register(
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
 )
 
-user_email = None  # Store user email globally
-access_token = None  # Store access token globally
+
+# google = oauth.register(
+#     name='google',
+#     client_id=app.config['GOOGLE_CLIENT_ID'],
+#     client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+#     authorize_url='https://accounts.google.com/o/oauth2/auth',
+#     access_token_url='https://oauth2.googleapis.com/token',
+#     api_base_url='https://www.googleapis.com/oauth2/v1/',
+#     userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
+#     jwks_uri="https://www.googleapis.com/oauth2/v3/certs",
+#     client_kwargs={'scope': 'openid email profile https://www.googleapis.com/auth/gmail.send'},
+#     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
+# )
+
+user_email = None  
+access_token = None  
 
 @app.route('/')
 def index():
@@ -67,7 +87,9 @@ def send_email_route():
         return jsonify({"message": "Failed to send email"}), 500
 
 def send_email(access_token, sender_email):
-    to_email = app.config['TO_EMAIL']
+    # to_email = app.config['TO_EMAIL']
+    to_email = TO_EMAIL
+
     subject = "you have a notification from {sender_email}"
     body = f"Hello,\n\n{user_name} has accepted to become your valentine"
 
