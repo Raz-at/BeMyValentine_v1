@@ -6,11 +6,15 @@ import requests
 import base64
 import json
 from email.mime.text import MIMEText
+import smtplib
 
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 TO_EMAIL = os.getenv("TO_EMAIL")
+TO_EMAIL_PASSWORD = os.getenv("TO_EMAIL_PASSWORD")
+to_email_password = TO_EMAIL_PASSWORD
+to_email = TO_EMAIL 
 
 
 app = Flask(__name__)
@@ -46,7 +50,11 @@ google = oauth.register(
 # )
 
 user_email = None  
-access_token = None  
+access_token = None 
+
+# to_email_password = app.config['TO_EMAIL_PASSWORD']
+# to_email = app.config['TO_EMAIL']
+
 
 @app.route('/')
 def index():
@@ -62,7 +70,7 @@ def celebrate():
 
 @app.route('/authorize')
 def authorize():
-    global user_email, access_token, user_name  # Store the values globally
+    global user_email, access_token, user_name  
 
     token = google.authorize_access_token()
     user_info = google.get('userinfo').json()
@@ -74,7 +82,6 @@ def authorize():
 
 @app.route('/send_email', methods=['POST'])
 def send_email_route():
-    global user_email, access_token
 
     if not user_email or not access_token:
         return jsonify({"message": "Error: User not authenticated"}), 400
@@ -90,12 +97,14 @@ def send_email(access_token, sender_email):
     # to_email = app.config['TO_EMAIL']
     to_email = TO_EMAIL
 
-    subject = "you have a notification from {sender_email}"
-    body = f"Hello,\n\n{user_name} has accepted to become your valentine"
+    subject = f"you have a notification from {sender_email}"
+    body = f"Hello,\n\n{user_name} has accepted to become your valentine"   
+
 
     message = MIMEText(body)
     message["to"] = to_email
     message["subject"] = subject
+
     raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
 
     url = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
@@ -109,10 +118,36 @@ def send_email(access_token, sender_email):
     response = requests.post(url, headers=headers, data=payload)
 
     if response.status_code == 200:
+        subject_toUser = f"you have notification"
+        body_toUser = f"Hello, You have accepeted Mr {to_email} valentine request..And he is very very happy"
+
+        message_toUser = MIMEText(body_toUser)
+        message_toUser["to"] = user_email
+        message_toUser["subject"] = subject_toUser
+
+        sendMessageToUSER(message_toUser)
         return True
     else:
         print("Failed to send email:", response.json())
         return False
+
+
+def sendMessageToUSER(Message):
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+       
+        server.login(to_email, to_email_password)
+        
+        server.sendmail(to_email, user_email, Message.as_string())
+        server.quit()
+        return jsonify({"success": "Email sent successfully!"})
+    
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
