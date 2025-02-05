@@ -176,6 +176,8 @@
     <div class="loading-screen" id="loading">Sending Email...</div>
 
     <script>
+      const BACKEND_URL = "https://bemyvalentine-v1.onrender.com";
+
       function openLetter() {
         document.querySelector(".letter-cover").style.transform =
           "translateY(-300px)";
@@ -203,7 +205,7 @@
       function sendEmail() {
         document.getElementById("loading").style.display = "flex";
 
-        fetch("/send_email", { method: "POST" })
+        fetch(`${BACKEND_URL}/send-email`, { method: "POST" })
           .then((response) => response.json())
           .then((data) => {
             alert(data.message);
