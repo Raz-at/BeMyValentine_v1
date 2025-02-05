@@ -6,6 +6,7 @@ import base64
 import json
 from email.mime.text import MIMEText
 
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
