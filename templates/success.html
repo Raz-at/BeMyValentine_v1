@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Sent</title>
+      <style>
+      /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling due to confetti */
+        }
+
+        .confetti-container {
+            text-align: center;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+            z-index: 1; /* Ensure text is above confetti */
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            p {
+                font-size: 0.875rem;
+            }
+
+            .confetti-container {
+                padding: 1.5rem;
+            }
+        }
+            
+      </style>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+      function triggerConfetti() {
+          confetti({
+              particleCount: 100, 
+              spread: 70, 
+              origin: { y: 0.6 }, 
+          });
+      }
+      setInterval(triggerConfetti, 500);
+     </script>
+</head>
+<body>
+    <div class="confetti-container">
+        <h1>🎉 Your request has been sent! 🎉</h1>
+        <p>Thank you for reaching out. We'll get back to you soon.</p>
+    </div>
+</body>
+</html>
