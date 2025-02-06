@@ -46,13 +46,13 @@ google = oauth.register(
 )
 
 @app.route('/')
-def home():
+def home(): 
+    session['user_name_message']  = None   
     return render_template('index.html')
 
 
 @app.route('/<sender_email>')
-def index(sender_email):
-
+def index(sender_email):    
     # key = app.config['MY_ENCRYPTION_KEY']
     key = MY_ENCRYPTION_KEY
 
@@ -92,7 +92,6 @@ def authorize():
 
 
         final_email = session.get('user_name_message')
-
         if not final_email:
             return render_template('sent_letter.html', email=session['user_email'], user_name=session['user_name'])
         else:
@@ -122,6 +121,9 @@ def send_email_link(access_token, user_email_link):
 
     encrypted_email = encrypt_email(user_email)
     BACKEND_URL = "https://bemyvalentine-v1.onrender.com"
+
+    # BACKEND_URL = "http://127.0.0.1:5000"
+
     link = f"{BACKEND_URL}/{encrypted_email}"
     body = f"Hello,\nPlease go to this link: \n{link}"
 
@@ -156,8 +158,6 @@ def send_email_route():
 def send_email(access_token, sender_email):
     to_email = sender_email
 
-    # to_email = app.config['TO_EMAIL']
-
     user_name = session.get('user_name', 'User')
 
     subject = f"You have a notification from {to_email}"
@@ -179,43 +179,8 @@ def send_email(access_token, sender_email):
     response = requests.post(url, headers=headers, data=payload)
     if response.status_code == 200:
         return True        
-        # return sendMessageToUSER(sender_email,access_token)
     else:
         print("Failed to send email:", response.json())
-        return False
-
-def sendMessageToUSER(sender_email,access_token):
-    try:
-
-        to_email = sender_email
-        from_email =  session.get('user_email')   
-        user_name = session.get('user_name')
-
-        subject = f"You have a notification from {to_email}"
-        body = f"Hello,\n\n{user_name} has accepted to become your valentine."
-
-        message = MIMEText(body)
-        message["to"] = to_email
-        message["subject"] = subject
-
-        raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
-
-        url = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json"
-        }
-        payload = json.dumps({"raw": raw_message})
-
-        response = requests.post(url, headers=headers, data=payload)
-        if response.status_code == 200:
-            return True        
-        else:
-            print("Failed to send email:", response.json())
-            return False
-        
-    except Exception as e:
-        print("Error sending email to user:", str(e))
         return False
 
 def encrypt_email(email):
@@ -236,7 +201,6 @@ def encrypt_email(email):
     return encoded_cipher
 
 def decrypt_user_email(encoded_cipher, key):
-    print(10)
 
     if len(key) < 16:
         key = key.ljust(16, '0')  
@@ -252,7 +216,6 @@ def decrypt_user_email(encoded_cipher, key):
     iv = data[:16]
     encrypted_email = data[16:]
     cipher = AES.new(key, AES.MODE_CBC, iv)    
-    print(1)
     decrypted_email = unpad(cipher.decrypt(encrypted_email), AES.block_size).decode('utf-8')
     return decrypted_email
 

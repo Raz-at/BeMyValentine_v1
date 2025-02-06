@@ -1,170 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Email Subscription</title>
     <style>
-        /* General Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+      /* General Reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .container {
+        text-align: center;
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+      }
+
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #333;
+      }
+
+      .romantic-message {
+        font-size: 1rem;
+        color: #ff4d6d;
+        margin-bottom: 2rem;
+        font-style: italic;
+      }
+
+      header {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1;
+      }
+
+      .email-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      input[type="email"] {
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+        outline: none;
+      }
+
+      input[type="email"]:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+      }
+
+      button {
+        padding: 0.75rem;
+        background-color: #ff4d6d;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #ff1a4d;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 480px) {
+        h1 {
+          font-size: 1.5rem;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+        .romantic-message {
+          font-size: 0.875rem;
         }
 
         .container {
-            text-align: center;
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
+          padding: 1.5rem;
         }
 
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            color: #333;
-        }
-
-        p {
-            font-size: 1rem;
-            color: #666;
-            margin-bottom: 2rem;
-        }
-
-        header {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-        }
-
-        .email-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        input[type="email"] {
-            padding: 0.75rem;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1rem;
-            outline: none;
-        }
-
-        input[type="email"]:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-        }
-
+        input[type="email"],
         button {
-            padding: 0.75rem;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+          font-size: 0.875rem;
         }
+      }
 
-        button:hover {
-            background-color: #0056b3;
+      /* Hide loading screen initially */
+      .loading-screen {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5rem;
+        z-index: 2;
+      }
+
+      /* Floating Hearts Animation */
+      .heart {
+        position: absolute;
+        font-size: 2rem;
+        color: #ff4d6d;
+        animation: float 5s linear infinite;
+        bottom: -10%;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0) rotate(0deg);
         }
-
-        /* Responsive Design */
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            p {
-                font-size: 0.875rem;
-            }
-
-            .container {
-                padding: 1.5rem;
-            }
-
-            input[type="email"], button {
-                font-size: 0.875rem;
-            }
+        100% {
+          transform: translateY(-110vh) rotate(360deg);
         }
+      }
 
-        /* Hide loading screen initially */
-        .loading-screen {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
-        }
+      /* Randomize heart positions and animation delays */
+      .heart:nth-child(1) {
+        left: 10%;
+        animation-duration: 6s;
+        animation-delay: 0s;
+      }
+
+      .heart:nth-child(2) {
+        left: 20%;
+        animation-duration: 8s;
+        animation-delay: 2s;
+      }
+
+      .heart:nth-child(3) {
+        left: 30%;
+        animation-duration: 7s;
+        animation-delay: 1s;
+      }
+
+      .heart:nth-child(4) {
+        left: 40%;
+        animation-duration: 9s;
+        animation-delay: 3s;
+      }
+
+      .heart:nth-child(5) {
+        left: 50%;
+        animation-duration: 5s;
+        animation-delay: 0.5s;
+      }
+
+      .heart:nth-child(6) {
+        left: 60%;
+        animation-duration: 6s;
+        animation-delay: 1.5s;
+      }
+
+      .heart:nth-child(7) {
+        left: 70%;
+        animation-duration: 7s;
+        animation-delay: 2.5s;
+      }
+
+      .heart:nth-child(8) {
+        left: 80%;
+        animation-duration: 8s;
+        animation-delay: 3.5s;
+      }
+
+      .heart:nth-child(9) {
+        left: 90%;
+        animation-duration: 9s;
+        animation-delay: 4s;
+      }
+      .heart:nth-child(10) {
+        left: 10%;
+        animation-duration: 5s;
+        animation-delay: 0.5s;
+      }
+
+      .heart:nth-child(11) {
+        left: 20%;
+        animation-duration: 6s;
+        animation-delay: 1.5s;
+      }
+
+      .heart:nth-child(12) {
+        left: 30%;
+        animation-duration: 7s;
+        animation-delay: 2.5s;
+      }
+
+      .heart:nth-child(13) {
+        left: 40%;
+        animation-duration: 8s;
+        animation-delay: 3.5s;
+      }
+
+      .heart:nth-child(14) {
+        left: 10%;
+        animation-duration: 3s;
+        animation-delay: 4s;
+      }
     </style>
-</head>
-<body>
-   <header>
-        <div class="username">{{ user_name }}</div>
+  </head>
+  <body>
+    <header>
+      <div class="username">{{ user_name }}</div>
     </header>
     <div class="container">
-        <h1>Enter an email address to send the letter...</h1>
-        <form class="email-form" onsubmit="sendEmail(event)">
-            <input type="email" id="email" name="email" placeholder="Enter your email address" required>
-            <button type="submit">Send</button>
-        </form>
+      <h1>Enter an email address to send the letter...</h1>
+      <p class="romantic-message">Share your love with someone special ❤️</p>
+      <form class="email-form" onsubmit="sendEmail(event)">
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Enter your email address"
+          required
+        />
+        <button type="submit">Send</button>
+      </form>
     </div>
     <div class="loading-screen" id="loading">Sending Email...</div>
 
+    <!-- Floating Hearts -->
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+    <div class="heart">❤️</div>
+
     <script>
-        const BACKEND_URL = "https://bemyvalentine-v1.onrender.com";
-        function sendEmail(event) {
-            event.preventDefault();  // Prevent the form from submitting
+      const BACKEND_URL = "https://bemyvalentine-v1.onrender.com";
+      //   const BACKEND_URL = "http://127.0.0.1:5000";
 
-            document.getElementById("loading").style.display = "flex";
-            const email = document.getElementById("email").value;
-            if (!email) {
-                alert("Please enter an email address.");
-                document.getElementById("loading").style.display = "none";
-                return;
-            }
+      function sendEmail(event) {
+        event.preventDefault();
 
-            fetch(`${BACKEND_URL}/send_email_with_link`, { 
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ email: email })
-            })
-            .then((response) => response.json())
-            .then((data) => {
-                alert(data.message);
-                window.location.href = "/success";  
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-                alert("Failed to send email.");
-            })
-            .finally(() => {
-                document.getElementById("loading").style.display = "none";
-            });
+        document.getElementById("loading").style.display = "flex";
+        const email = document.getElementById("email").value;
+        if (!email) {
+          alert("Please enter an email address.");
+          document.getElementById("loading").style.display = "none";
+          return;
         }
+
+        fetch(`${BACKEND_URL}/send_email_with_link`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert(data.message);
+            window.location.href = "/success";
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Failed to send email.");
+          })
+          .finally(() => {
+            document.getElementById("loading").style.display = "none";
+          });
+      }
     </script>
-</body>
+  </body>
 </html>
