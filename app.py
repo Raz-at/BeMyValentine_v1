@@ -121,8 +121,8 @@ def send_email_link(access_token, user_email_link):
     subject = "Open the link for suprise"
 
     encrypted_email = encrypt_email(user_email)
-    
-    link = f"http://127.0.0.1:5000/{encrypted_email}"
+    BACKEND_URL = "https://bemyvalentine-v1.onrender.com"
+    link = f"{BACKEND_URL}/{encrypted_email}"
     body = f"Hello,\nPlease go to this link: \n{link}"
 
     message = MIMEText(body)
