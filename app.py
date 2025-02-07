@@ -107,7 +107,6 @@ def authorize():
 
         user_id = add_user.id
 
-
         session['user_email'] = user_info.get('email')
         session['user_name'] = user_info.get('name')
         session['access_token'] = token.get('access_token')
@@ -117,7 +116,7 @@ def authorize():
         if not final_email:
             return render_template('sent_letter.html', email=session['user_email'], user_name=session['user_name'], user_id = user_id)
         else:
-            return render_template('letter.html', email=session['user_email'], user_name=session['user_name'])
+            return render_template('letter.html', email=session['user_email'], user_name=session['user_name'], user_id = user_id)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -130,14 +129,10 @@ def send_email_link_route():
     user_email_link = data.get("email")
 
     user_id = data.get("user_id")
-
-    print("user id = ",user_id)
-
     user = db.session.get(User, user_id)
-    print("user value = ",user)
     if not user:
         return jsonify({"message": "Error: User not found"}), 404
-    user.sent_email = user_email_link
+    user.email_to = user_email_link
     db.session.commit()
 
     
@@ -182,6 +177,18 @@ def send_email_route():
     access_token = session.get('access_token')
     # user_email = session.get('user_email')    
     final_email = session.get('user_name_message')
+
+    data = request.get_json()
+    user_id = data.get("user_id")
+
+    user=db.session.get(User,user_id)
+    if not user:
+        return jsonify({"message": "Error: User not found"}), 404
+
+    user.email_from = final_email
+    user.response = 'yes'
+    db.session.commit()
+
 
     if not final_email or not access_token:
         return jsonify({"message": "Error: User not authenticated"}), 400

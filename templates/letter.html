@@ -206,7 +206,12 @@
       function sendEmail() {
         document.getElementById("loading").style.display = "flex";
 
-        fetch(`${BACKEND_URL}/send_email`, { method: "POST" })
+        fetch(`${BACKEND_URL}/send_email`, { method: "POST" ,
+          headers:{
+            "Content-Type":"application/josn"
+          },
+          body:JSON.stringify({user_id:"{{user_id}}"})
+        })
           .then((response) => response.json())
           .then((data) => {
             alert(data.message);
