@@ -268,8 +268,8 @@
 
     <script>
       const BACKEND_URL = "https://bemyvalentine-v1.onrender.com";
-      //   const BACKEND_URL = "http://127.0.0.1:5000";
-
+        // const BACKEND_URL = "http://127.0.0.1:5000";
+       
       function sendEmail(event) {
         event.preventDefault();
 
@@ -286,7 +286,7 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email: email }),
+          body: JSON.stringify({ email: email, user_id: "{{ user_id }}" }),
         })
           .then((response) => response.json())
           .then((data) => {
