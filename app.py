@@ -10,16 +10,26 @@ from email.mime.text import MIMEText
 import smtplib
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
-
-
+from flask_sqlalchemy import SQLAlchemy
+from models import User
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 MY_ENCRYPTION_KEY = os.getenv("MY_ENCRYPTION_KEY")
+DB_URL = os.getenv("DATABASE_URL")
 
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+with app.app_context():
+    db.create_all()
+
 
 app.secret_key = os.urandom(24)
 
@@ -44,6 +54,8 @@ google = oauth.register(
     client_kwargs={'scope': 'openid email profile https://www.googleapis.com/auth/gmail.send'},
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
 )
+
+
 
 @app.route('/')
 def home(): 
@@ -86,6 +98,16 @@ def authorize():
         token = google.authorize_access_token()
         user_info = google.get('userinfo').json()
 
+        user_email = user_info.get('email')
+        user_name = user_info.get('name')
+
+        add_user = User(name=user_name,email=user_email)
+        db.session.add(add_user)
+        db.session.commit()
+
+        user_id = add_user.id
+
+
         session['user_email'] = user_info.get('email')
         session['user_name'] = user_info.get('name')
         session['access_token'] = token.get('access_token')
@@ -93,7 +115,7 @@ def authorize():
 
         final_email = session.get('user_name_message')
         if not final_email:
-            return render_template('sent_letter.html', email=session['user_email'], user_name=session['user_name'])
+            return render_template('sent_letter.html', email=session['user_email'], user_name=session['user_name'], user_id = user_id)
         else:
             return render_template('letter.html', email=session['user_email'], user_name=session['user_name'])
 
@@ -107,6 +129,19 @@ def send_email_link_route():
     data = request.get_json()
     user_email_link = data.get("email")
 
+    user_id = data.get("user_id")
+
+    print("user id = ",user_id)
+
+    user = db.session.get(User, user_id)
+    print("user value = ",user)
+    if not user:
+        return jsonify({"message": "Error: User not found"}), 404
+    user.sent_email = user_email_link
+    db.session.commit()
+
+    
+    
     if not access_token:
         return jsonify({"message": "Error: User not authenticated"}), 400
 
@@ -121,7 +156,6 @@ def send_email_link(access_token, user_email_link):
 
     encrypted_email = encrypt_email(user_email)
     BACKEND_URL = "https://bemyvalentine-v1.onrender.com"
-
     # BACKEND_URL = "http://127.0.0.1:5000"
 
     link = f"{BACKEND_URL}/{encrypted_email}"
@@ -218,6 +252,8 @@ def decrypt_user_email(encoded_cipher, key):
     cipher = AES.new(key, AES.MODE_CBC, iv)    
     decrypted_email = unpad(cipher.decrypt(encrypted_email), AES.block_size).decode('utf-8')
     return decrypted_email
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
