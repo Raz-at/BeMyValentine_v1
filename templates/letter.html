@@ -164,7 +164,7 @@
       <div class="letter">
         <p>Will you be my Valentine?? 💖</p>
         <div class="buttons">
-          <button class="yes-btn" onclick="sendEmail()">Yes</button>
+          <button class="yes-btn" onclick="sendEmail('yes')">Yes</button>
           <button class="no-btn" onmouseover="moveNoButton()">No</button>
         </div>
       </div>
@@ -203,14 +203,14 @@
         button.style.top = `${randomY}px`;
       }
 
-      function sendEmail() {
+      function sendEmail(response) {
         document.getElementById("loading").style.display = "flex";
 
         fetch(`${BACKEND_URL}/send_email`, { method: "POST" ,
           headers:{
             "Content-Type":"application/josn"
           },
-          body:JSON.stringify({user_id:"{{user_id}}"})
+          body:JSON.stringify({user_id:"{{user_id}}",response:response})
         })
           .then((response) => response.json())
           .then((data) => {

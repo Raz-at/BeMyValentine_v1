@@ -180,13 +180,14 @@ def send_email_route():
 
     data = request.get_json()
     user_id = data.get("user_id")
+    response = data.get('response')
 
     user=db.session.get(User,user_id)
     if not user:
         return jsonify({"message": "Error: User not found"}), 404
 
     user.email_from = final_email
-    user.response = 'yes'
+    user.response = response
     db.session.commit()
 
 
