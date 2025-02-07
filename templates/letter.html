@@ -208,9 +208,9 @@
 
         fetch(`${BACKEND_URL}/send_email`, { method: "POST" ,
           headers:{
-            "Content-Type":"application/josn"
+            "Content-Type":"application/json"
           },
-          body:JSON.stringify({user_id:"{{user_id}}",response:response})
+          body:JSON.stringify({user_id:"{{user_id}}", response: response})
         })
           .then((response) => response.json())
           .then((data) => {

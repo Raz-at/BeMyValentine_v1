@@ -133,9 +133,7 @@ def send_email_link_route():
     if not user:
         return jsonify({"message": "Error: User not found"}), 404
     user.email_to = user_email_link
-    db.session.commit()
-
-    
+    db.session.commit() 
     
     if not access_token:
         return jsonify({"message": "Error: User not authenticated"}), 400
@@ -178,9 +176,11 @@ def send_email_route():
     # user_email = session.get('user_email')    
     final_email = session.get('user_name_message')
 
+
     data = request.get_json()
     user_id = data.get("user_id")
     response = data.get('response')
+
 
     user=db.session.get(User,user_id)
     if not user:
