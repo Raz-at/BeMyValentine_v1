@@ -62,7 +62,8 @@
         gap: 1rem;
       }
 
-      input[type="email"] {
+      input[type="email"],
+      input[type="text"] {
         padding: 0.75rem;
         border: 1px solid #ccc;
         border-radius: 5px;
@@ -70,7 +71,8 @@
         outline: none;
       }
 
-      input[type="email"]:focus {
+      input[type="email"]:focus,
+      input[type="text"]:focus {
         border-color: #007bff;
         box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
       }
@@ -105,6 +107,7 @@
         }
 
         input[type="email"],
+        input[type="text"],
         button {
           font-size: 0.875rem;
         }
@@ -238,6 +241,14 @@
       <p class="romantic-message">Share your love with someone special ❤️</p>
       <form class="email-form" onsubmit="sendEmail(event)">
         <input
+          type="text"
+          id="text"
+          name="text"
+          placeholder="Enter text you want to share"
+          required
+        />
+
+        <input
           type="email"
           id="email"
           name="email"
@@ -247,6 +258,7 @@
         <button type="submit">Send</button>
       </form>
     </div>
+    <div id="user-info" data-user-id="{{ user_id }}"></div>
     <div class="loading-screen" id="loading">Sending Email...</div>
 
     <!-- Floating Hearts -->
@@ -268,13 +280,16 @@
 
     <script>
       const BACKEND_URL = "https://bemyvalentine-v1.onrender.com";
-        // const BACKEND_URL = "http://127.0.0.1:5000";
-       
+      // const BACKEND_URL = "http://127.0.0.1:5000";
+
       function sendEmail(event) {
         event.preventDefault();
 
         document.getElementById("loading").style.display = "flex";
         const email = document.getElementById("email").value;
+        const message = document.getElementById("text").value;
+        const userId = document.getElementById("user-info").getAttribute("data-user-id");
+
         if (!email) {
           alert("Please enter an email address.");
           document.getElementById("loading").style.display = "none";
@@ -286,7 +301,7 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email: email, user_id: "{{ user_id }}" }),
+          body: JSON.stringify({ email: email, user_id: userId, message: message }),
         })
           .then((response) => response.json())
           .then((data) => {
