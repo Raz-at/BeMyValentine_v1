@@ -279,8 +279,8 @@
     <div class="heart">❤️</div>
 
     <script>
-      const BACKEND_URL = "https://bemyvalentine-v1.onrender.com";
-      // const BACKEND_URL = "http://127.0.0.1:5000";
+      // const BACKEND_URL = "https://bemyvalentine-v1.onrender.com";
+      const BACKEND_URL = "http://127.0.0.1:5000";
 
       function sendEmail(event) {
         event.preventDefault();
@@ -288,7 +288,9 @@
         document.getElementById("loading").style.display = "flex";
         const email = document.getElementById("email").value;
         const message = document.getElementById("text").value;
-        const userId = document.getElementById("user-info").getAttribute("data-user-id");
+        const userId = document
+          .getElementById("user-info")
+          .getAttribute("data-user-id");
 
         if (!email) {
           alert("Please enter an email address.");
@@ -301,7 +303,11 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email: email, user_id: userId, message: message }),
+          body: JSON.stringify({
+            email: email,
+            user_id: userId,
+            message: message,
+          }),
         })
           .then((response) => response.json())
           .then((data) => {

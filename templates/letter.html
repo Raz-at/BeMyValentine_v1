@@ -176,8 +176,8 @@
     <div class="loading-screen" id="loading">Sending Email...</div>
 
     <script>
-      const BACKEND_URL = "https://bemyvalentine-v1.onrender.com";
-      // const BACKEND_URL = "http://127.0.0.1:5000";
+      //const BACKEND_URL = "https://bemyvalentine-v1.onrender.com";
+      const BACKEND_URL = "http://127.0.0.1:5000";
 
       function openLetter() {
         document.querySelector(".letter-cover").style.transform =
@@ -206,11 +206,12 @@
       function sendEmail(response) {
         document.getElementById("loading").style.display = "flex";
 
-        fetch(`${BACKEND_URL}/send_email`, { method: "POST" ,
-          headers:{
-            "Content-Type":"application/json"
+        fetch(`${BACKEND_URL}/send_email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          body:JSON.stringify({user_id:"{{user_id}}", response: response})
+          body: JSON.stringify({ user_id: "{{user_id}}", response: response }),
         })
           .then((response) => response.json())
           .then((data) => {

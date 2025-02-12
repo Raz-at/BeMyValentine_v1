@@ -14,28 +14,34 @@ from flask_sqlalchemy import SQLAlchemy
 from models import User
 import uuid
 from sqlalchemy import select
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+
+
+
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 MY_ENCRYPTION_KEY = os.getenv("MY_ENCRYPTION_KEY")
-DB_URL = os.getenv("DATABASE_URL")
 
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = app.config['DB_URL']
-app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+#load firebase credentials
+firebase_base64 = os.getenv("FIREBASE_CREDENTIALS")  # Load from Render
+firebase_json = base64.b64decode(firebase_base64).decode("utf-8")  # Decode
+firebase_credentials = json.loads(firebase_json)  # Convert to dict
+cred = credentials.Certificate(firebase_credentials)
+firebase_admin.initialize_app(cred)
 
-with app.app_context():
-    db.create_all()
+
+db_firestore = firestore.client()
 
 
 app.secret_key = os.urandom(24)
-
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
@@ -45,10 +51,10 @@ oauth = OAuth(app)
 
 google = oauth.register(
     name='google',
-    # client_id=app.config['GOOGLE_CLIENT_ID'],
-    # client_secret=app.config['GOOGLE_CLIENT_SECRET'],
-    client_id=GOOGLE_CLIENT_ID,
-    client_secret=GOOGLE_CLIENT_SECRET,
+    client_id=app.config['GOOGLE_CLIENT_ID'],
+    client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+    # client_id=GOOGLE_CLIENT_ID,
+    # client_secret=GOOGLE_CLIENT_SECRET,
     authorize_url='https://accounts.google.com/o/oauth2/auth',
     access_token_url='https://oauth2.googleapis.com/token',
     api_base_url='https://www.googleapis.com/oauth2/v1/',
@@ -62,27 +68,45 @@ google = oauth.register(
 
 @app.route('/')
 def home(): 
-    session['user_name_message']  = None   
+    session['UNIQUE_USER_ID']  = None   
     return render_template('index.html')
 
 
 @app.route('/<sender_email>')
 def index(sender_email):    
-    # key = app.config['MY_ENCRYPTION_KEY']
-    key = MY_ENCRYPTION_KEY  
+    key = app.config['MY_ENCRYPTION_KEY']
+    # key = MY_ENCRYPTION_KEY  
 
     decryptrd_email_user_id = decrypt_user_email(sender_email,key)
 
-    # session['user_name_message'] = decryptrd_email
-
     session['UNIQUE_USER_ID'] = decryptrd_email_user_id
 
-    exists = db.session.query(User).filter(User.sender_id == decryptrd_email_user_id).count() > 0
-    if exists:
-        return render_template('error.html', message="This link has already been used."), 403  
-    
-   
+    users_ref = db_firestore.collection('users')
+    user_docs = users_ref.where('sender_id', '==',decryptrd_email_user_id).get()
+
+    if user_docs:
+        return render_template('error.html', message="This link has already been used."), 403   
     return render_template('index.html')
+
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    data = request.get_json()
+    user_id = str(uuid.uuid4())
+
+    user_data = {
+        "user_id": user_id,
+        "name": data.get("name"),
+        "email": data.get("email"),
+        "email_to": data.get("email_to"),
+        "email_from": data.get("email_from"),
+        "response": data.get("response"),
+        "created_at": firestore.SERVER_TIMESTAMP
+    }
+
+    db.collection("users").document(user_id).set(user_data)
+    return jsonify({"message": "User added successfully!", "user_id": user_id})
+
 
 
 @app.route('/login')
@@ -118,18 +142,34 @@ def authorize():
         if not sender_id:
             sender_id = None
         else:
-            user = db.session.get(User,sender_id)
-            message = user.message
+            user_ref = db_firestore.collection("users").document(sender_id)
+            user_doc = user_ref.get()
+            if user_doc.exists:
+                user_data = user_doc.to_dict()
+                message = user_data['message']
+            else:
+                print("User not found")
 
-        add_user = User(name=user_name,email=user_email,user_id=user_id_guid,sender_id = sender_id)
-        db.session.add(add_user)
-        db.session.commit()
-
-        unique_user_id = add_user.user_id
+        unique_user_id = user_id_guid
 
         session['user_email'] = user_email
         session['user_name'] = user_name
         session['access_token'] = token.get('access_token')
+
+
+        #adding to firebase
+        data_fb = {
+            "user_id": user_id_guid,
+            "name": user_name,
+            "email": user_email,
+            "email_to": None,
+            "email_from": None,
+            "response": None,
+            "created_at": firestore.SERVER_TIMESTAMP,
+            "sender_id": sender_id
+        }
+
+        db_firestore.collection("users").document(user_id_guid).set(data_fb)
 
 
         final_email = session.get('UNIQUE_USER_ID')
@@ -150,14 +190,21 @@ def send_email_link_route():
 
     unique_user_id = data.get("user_id")
     message = data.get("message")
-    user = db.session.get(User, unique_user_id)
     
-    user.message = message
-    user.email_to = user_email_link
+    #firebase sectoin
+    user_from_fb_ref = db_firestore.collection("users").document(unique_user_id)
+    user_from_fb =  user_from_fb_ref.get()
+    if user_from_fb.exists:
+        user_data =  user_from_fb.to_dict()
 
-    if not user:
-        return jsonify({"message": "Error: User not found"}), 404
-    db.session.commit() 
+        # Update the fields (like SQLAlchemy update)
+        user_data["message"] = message
+        user_data["email_to"] = user_email_link
+
+        # Update the document in Firestore
+        user_from_fb_ref.update(user_data)
+    else:
+        print("User not found in Firestore")    
     
     if not access_token:
         return jsonify({"message": "Error: User not authenticated"}), 400
@@ -174,8 +221,8 @@ def send_email_link(access_token, user_email_link,unique_user_id):
 
     unique_user_id = unique_user_id
     encrypted_user_id = encrypt_email(unique_user_id)
-    BACKEND_URL = "https://bemyvalentine-v1.onrender.com"
-    # BACKEND_URL = "http://127.0.0.1:5000"
+    # BACKEND_URL = "https://bemyvalentine-v1.onrender.com"
+    BACKEND_URL = "http://127.0.0.1:5000"
 
     # link = f"{BACKEND_URL}/{encrypted_email}" 
     link = f"{BACKEND_URL}/{encrypted_user_id}" 
@@ -203,28 +250,31 @@ def send_email_link(access_token, user_email_link,unique_user_id):
 def send_email_route():
     access_token = session.get('access_token')
 
-    data = request.get_json()
-    
+    data = request.get_json()   
     respondent_user_id = data.get("user_id")
-
     
-    user_data = db.session.get(User,respondent_user_id)
-    
+ 
     response = data.get('response')
     user_id = session.get('UNIQUE_USER_ID')
 
-    user=db.session.get(User,user_id)
-    final_email = user.email
-    
-    #this is to add the from email in the receiver tab
-    user_data.email_from = final_email
-    
-    
-    if not user:
-        return jsonify({"message": "Error: User not found"}), 404
+    user_from_fb_ref = db_firestore.collection("users").document(user_id)
+    user_from_fb =  user_from_fb_ref.get()
+    if user_from_fb.exists:
+        user_data =  user_from_fb.to_dict()
+        final_email = user_data['email']
+    else:
+        print("User not found in Firestore")    
 
-    user_data.response = response
-    db.session.commit()
+
+    user_fb_ref = db_firestore.collection("users").document(respondent_user_id)
+    user_fb_doc = user_fb_ref.get()
+    if user_fb_doc.exists:
+         user_data = user_fb_doc.to_dict() 
+         user_data["email_from"] = final_email
+         user_data["response"] = response
+         user_fb_ref.update(user_data)
+    else:
+        print("user not found")
 
     if not final_email or not access_token:
         return jsonify({"message": "Error: User not authenticated"}), 400
@@ -261,8 +311,8 @@ def send_email(access_token, sender_email):
         return False
 
 def encrypt_email(email):
-    key = MY_ENCRYPTION_KEY
-    # key = app.config['MY_ENCRYPTION_KEY']
+    # key = MY_ENCRYPTION_KEY
+    key = app.config['MY_ENCRYPTION_KEY']
 
 
     if len(key) < 16:
