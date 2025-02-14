@@ -40,6 +40,9 @@ jobs:
 
       - name: Replace the local URL to deployment URL in sent_letter.html
         run: sed -i 's|http://127.0.0.1:5000|https://bemyvalentine-v1.onrender.com|g' templates/sent_letter.html
+      
+      - name: View app.py content after replacement
+        run: cat app.py
 
       - name: Debug Render API Response
         run: |
