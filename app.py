@@ -37,6 +37,8 @@ firebase_credentials = json.loads(firebase_json)  # Convert to dict
 cred = credentials.Certificate(firebase_credentials)
 firebase_admin.initialize_app(cred)
 
+# cred = credentials.Certificate("spartacus-ece94-firebase-adminsdk-fbsvc-1a0eedeb7f.json")
+# firebase_admin.initialize_app(cred)
 
 db_firestore = firestore.client()
 
@@ -87,26 +89,6 @@ def index(sender_email):
     if user_docs:
         return render_template('error.html', message="This link has already been used."), 403   
     return render_template('index.html')
-
-
-@app.route('/add_user', methods=['POST'])
-def add_user():
-    data = request.get_json()
-    user_id = str(uuid.uuid4())
-
-    user_data = {
-        "user_id": user_id,
-        "name": data.get("name"),
-        "email": data.get("email"),
-        "email_to": data.get("email_to"),
-        "email_from": data.get("email_from"),
-        "response": data.get("response"),
-        "created_at": firestore.SERVER_TIMESTAMP
-    }
-
-    db.collection("users").document(user_id).set(user_data)
-    return jsonify({"message": "User added successfully!", "user_id": user_id})
-
 
 
 @app.route('/login')
