@@ -221,8 +221,8 @@ def send_email_link(access_token, user_email_link,unique_user_id):
 
     unique_user_id = unique_user_id
     encrypted_user_id = encrypt_email(unique_user_id)
-    BACKEND_URL = "https://bemyvalentine-v1.onrender.com"
-    # BACKEND_URL = "http://127.0.0.1:5000"
+    # BACKEND_URL = "https://bemyvalentine-v1.onrender.com"
+    BACKEND_URL = "http://127.0.0.1:5000"
 
     # link = f"{BACKEND_URL}/{encrypted_email}" 
     
