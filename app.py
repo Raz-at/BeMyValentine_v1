@@ -37,9 +37,6 @@ firebase_credentials = json.loads(firebase_json)  # Convert to dict
 cred = credentials.Certificate(firebase_credentials)
 firebase_admin.initialize_app(cred)
 
-# cred = credentials.Certificate("spartacus-ece94-firebase-adminsdk-fbsvc-1a0eedeb7f.json")
-# firebase_admin.initialize_app(cred)
-
 db_firestore = firestore.client()
 
 
