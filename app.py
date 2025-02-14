@@ -206,9 +206,9 @@ def send_email_link(access_token, user_email_link,unique_user_id):
     # link = f"{BACKEND_URL}/{encrypted_email}" 
     
     link = f"{BACKEND_URL}/{encrypted_user_id}" 
-    print("this is link = ",link)
+    
 
-    body = f"Hello,\nPlease go to this link: \n{link}"
+    body = f"Hello,\nPlease go to this link: {BACKEND_URL} \n{link}"
 
     message = MIMEText(body)
     message["to"] = user_email_link
