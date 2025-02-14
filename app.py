@@ -51,10 +51,10 @@ oauth = OAuth(app)
 
 google = oauth.register(
     name='google',
-    client_id=app.config['GOOGLE_CLIENT_ID'],
-    client_secret=app.config['GOOGLE_CLIENT_SECRET'],
-    # client_id=GOOGLE_CLIENT_ID,
-    # client_secret=GOOGLE_CLIENT_SECRET,
+    # client_id=app.config['GOOGLE_CLIENT_ID'],
+    # client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
     authorize_url='https://accounts.google.com/o/oauth2/auth',
     access_token_url='https://oauth2.googleapis.com/token',
     api_base_url='https://www.googleapis.com/oauth2/v1/',
@@ -74,8 +74,8 @@ def home():
 
 @app.route('/<sender_email>')
 def index(sender_email):    
-    key = app.config['MY_ENCRYPTION_KEY']
-    # key = MY_ENCRYPTION_KEY  
+    # key = app.config['MY_ENCRYPTION_KEY']
+    key = MY_ENCRYPTION_KEY  
 
     decryptrd_email_user_id = decrypt_user_email(sender_email,key)
 
@@ -312,8 +312,8 @@ def send_email(access_token, sender_email):
         return False
 
 def encrypt_email(email):
-    # key = MY_ENCRYPTION_KEY
-    key = app.config['MY_ENCRYPTION_KEY']
+    key = MY_ENCRYPTION_KEY
+    # key = app.config['MY_ENCRYPTION_KEY']
 
 
     if len(key) < 16:
